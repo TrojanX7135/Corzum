@@ -1,0 +1,5 @@
+# Route POST để thay đổi mật khẩu cho một khóa cửa
+# @app.post('/')
+# async def update_password(lock_id: str = Form(...), new_password: str = Form(...)):
+#     result = change_password(lock_id, new_password)
+#     return {'result': result}
