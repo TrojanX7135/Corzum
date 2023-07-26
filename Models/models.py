@@ -18,5 +18,5 @@ class Lock:
             lock_data['effective_time'],
             lock_data['invalid_time'],
             lock_data['password_type'],
-            lock_data['ticket_id'],
+            lock_data['password_id'],
         )

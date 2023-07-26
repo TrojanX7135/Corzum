@@ -1,0 +1,84 @@
+Home
+- id: int (primary key)
+- name: text
+- address: text
+- CreateAt: datetime
+- UpDateAt: datatime
+
+Room
+- id: int (primary key)
+- home_id: int (foreign key references Home.id)
+- name: text
+- CreateAt: datetime
+- UpDateAt: datetime
+
+Device
+- id: int (primary key)
+- room_id: int (foreign key references Room.id)
+- name: text
+- type: text
+- CreateAt: datetime
+- UpDateAt: datetime
+
+Device_passwords
+- id_password: int (primary key)
+- device_id: int (foreign key references Device.id)
+- name: text
+- password: text
+- password_type: text
+- effectine_time: datetime
+- invalid_time: datetimee
+
+Device_logs
+- id: int (primary key)
+- device_id: int (foreign key references Device.id)
+- action: text
+- action_value: text
+- time: datetime
+
+
+
+Home
+{
+    "_id": ObjectId,
+    "name": string,
+    "address": string,
+    "CreateAt": datetime,
+    "UpDateAt": datetime,
+    "rooms": [
+        {
+            "_id": ObjectId,
+            "name": string,
+            "CreateAt": datetime,
+            "UpDateAt": datetime,
+            "devices": [
+                {
+                    "_id": ObjectId,
+                    "name": string,
+                    "type": string,
+                    "CreateAt": datetime,
+                    "UpDateAt": datetime,
+                    "passwords": [
+                        {
+                            "_id": ObjectId,
+                            "name": string,
+                            "password": string,
+                            "password_type": string,
+                            "effectine_time": datetime,
+                            "invalid_time": datetime
+                        }
+                    ],
+                    "logs": [
+                        {
+                            "_id": ObjectId,
+                            "action": string,
+                            "action_value": string,
+                            "time": datetime
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+

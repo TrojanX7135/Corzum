@@ -4,11 +4,8 @@ from datetime import datetime
 # Khởi tạo kết nối với cơ sở dữ liệu MongoDB
 client = MongoClient('mongodb://localhost:27017/')
 db = client['mydatabase']
-home = db['home']
-room = db['room']
 device = db['device']
-device_passwords = db['device_passwords']
-device_logs = db['device_logs']
+locks = db['locks']
 
 def Db_get_locks():
     result = []
@@ -25,33 +22,6 @@ def Db_get_locks():
                     'password_id': lock['password_id']
                 })
     return result
-
-
-# Hàm thêm một Home mới vào cơ sở dữ liệu
-def Db_set_home(id, Name, address, createAt):
-    createAt = datetime.now()
-    home_data = {
-        'id': id,
-        'Name': Name,
-        'address': address,
-        'createAt': createAt
-    }
-    home.insert_one(home_data)
-
-# Hàm thêm một Room mới vào cơ sở dữ liệu
-def Db_set_room(id, Name, createAt):
-    createAt = datetime.now()
-    room_data = {
-        'id': id,
-        'home_id': home.id,
-        'Name': Name,
-        'createAT': createAt
-    }
-    home.insert_one(room_data)
-
-
-
-
 
 # Hàm thêm một khóa cửa mới vào cơ sở dữ liệu
 def Db_set_lock_password(device_id, Name, password, effective_time, invalid_time, password_id):

@@ -1,5 +1,20 @@
-# Route POST để thay đổi mật khẩu cho một khóa cửa
-# @app.post('/')
-# async def update_password(lock_id: str = Form(...), new_password: str = Form(...)):
-#     result = change_password(lock_id, new_password)
-#     return {'result': result}
+def Db_get_locks():
+#     result = []
+#     current_time = datetime.now()
+#     for device_data in device.find():
+#         if 'locks' in device_data:
+#             for lock in device_data['locks']:
+#                 invalid_time = datetime.strptime(lock['invalid_time'], '%Y-%m-%d %H:%M:%S')
+#                 # invalid_time = lock['invalid_time']
+#                 if invalid_time < current_time:
+#                     lock['invalid'] = True
+#                 result.append({
+#                     'device_id': device_data['_id'],
+#                     'Name': lock['Name'],
+#                     'password': lock['password'],
+#                     'effective_time': lock['effective_time'],
+#                     'invalid_time': lock['invalid_time'],
+#                     'password_type': lock['password_type'],
+#                     'password_id': lock['password_id']
+#                 })
+#     return result
