@@ -1,100 +1,154 @@
-from Database.db import Db_get_locks, Db_set_lock_password, Db_update_lock_password, Db_delete_lock_password
-from Models.models import Lock
-from Tuya.tuya import tuya_set_lock_password
-from Tuya.tuya import tuya_update_lock_password
-from Tuya.tuya import tuya_delete_lock_password
-from Tuya.tuya import tuya_get_lock_history
-from Tuya.tuya import tuya_get_lock_status
-from Tuya.tuya import tuya_set_lock_OTP
-from Tuya.tuya import tuya_get_password_status
-
-# Hàm lấy danh sách các khóa cửa từ cơ sở dữ liệu
-def Ctrl_get_locks():
-    return Db_get_locks()
+from Models.models import Home, Room, Device, DevicePassword, DeviceLog
+from Models.models import Model_get_device_status_pin, Model_capture_an_image, Model_get_device_logs_Tuya, Model_get_device_logs_Tuya_2, Model_get_list_device_inCloud
 
 
-# Hàm đặt mật khẩu cho khóa cửa    
-def Ctrl_set_lock_password(device_id, Name, password, effective_time, invalid_time):
-    # Gọi API của Tuya để đặt mật khẩu cho khóa cửa
-    response = tuya_set_lock_password(device_id, Name, password, effective_time, invalid_time)
-    if response['success']:
-        # Thêm khóa cửa mới vào cơ sở dữ liệu
-        Db_set_lock_password(device_id, Name, password, effective_time, invalid_time, password_id=response["result"])
-        return f'Đặt mật khẩu thành công cho khóa cửa {device_id} : {response["result"]}'
-    else:
-        return f'Đặt mật khẩu thất bại cho khóa cửa {device_id}: {response["msg"]}'
+
+# ______________________________________________[ HOME ] 
+# Hàm tạo Home
+def Ctrl_set_home(Name, address):
+    try:
+        return Home.Model_set_home(Name, address)
+    except Exception as e:
+        return f'Error: {e}'
+
+# Hàm lấy danh sách các Home
+def Ctrl_get_homes():
+    return Home.Model_get_homes()
+
+# Hàm cập nhật Home
+def Ctrl_update_home(home_id, Name, Address):
+    try:
+        return Home.Model_update_home(home_id, Name, Address)
+    except Exception as e:
+        return f'Error: {e}'
 
 
-# Hàm thay đổi mật khẩu cho một khóa cửa
-def Ctrl_update_lock_password(device_id, password_id, password, effective_time, invalid_time):  
-    # Gọi API của Tuya để đặt mật khẩu mới
-    response = tuya_update_lock_password(device_id, password_id, password, effective_time, invalid_time)
-    if response['success']:
-        # Cập nhật thông tin mật khẩu mới vào cơ sở dữ liệu
-        Db_update_lock_password(device_id, password_id, password, effective_time, invalid_time)
-        return f'Đổi mật khẩu thành công cho khóa cửa {device_id} : {response["result"]}'
-    else:
-        return f'Đổi mật khẩu thất bại cho khóa cửa {device_id}: {response["msg"]}'
 
-
-# Hàm xóa mật khẩu tạm thời cho khóa cửa
-def Ctrl_delete_lock_password(device_id, password_id):
-    # Gọi API của Tuya để xóa mật khẩu tạm thời
-    response = tuya_delete_lock_password(device_id, password_id)
-    if response['success']:
-        # Xóa thông tin mật khẩu khỏi cơ sở dữ liệu
-        Db_delete_lock_password(device_id, password_id)
-        return f'Xóa mật khẩu thành công cho khóa cửa {device_id} : {response["result"]}'
-    else:
-        return f'Xóa mật khẩu thất bại cho khóa cửa {device_id}: {response["msg"]}'
-
-
-# Hàm lấy nhật ký hoạt động của khóa cửa
-def Ctrl_get_lock_history(device_id, page_no, page_size, start_time, end_time):
-    # Gọi API của Tuya để lấy lịch sử
-    response = tuya_get_lock_history(device_id, page_no, page_size, start_time, end_time)
-    if response['success']:
-        return f'{response["result"]}'
-    else:
-        return f'Không lấy được nhật ký hoạt động của khóa cửa {device_id} : {response["msg"]}'
+# ______________________________________________[ ROOM ] 
+# Hàm tạo Room
+def Ctrl_set_room(home_id, Name):
+    try:
+        return Room.Model_set_room(home_id, Name)
+    except Exception as e:
+        return f'Error: {e}'
     
+# Hàm lấy danh sách các Room
+def Ctrl_get_rooms():
+    return Room.Model_get_rooms()
 
-# Hàm lấy trạng thái của khóa cửa
-def Ctrl_get_lock_status(device_id):
-    # Gọi API của Tuya để lấy trạng thái
-    response = tuya_get_lock_status(device_id)
-    if response['success']:
-        # Duyệt qua danh sách các code trong trường status
-        for code in response["result"]["status"]:
-            # Kiểm tra xem code có phải là battery_state hay không
-            if code["code"] == "battery_state":
-                # Trả về giá trị của code battery_state
-                return f'{code["value"]}'
-    else:
-        return f'Không lấy được trạng thái pin của khóa cửa {device_id} : {response["msg"]}'
+# Hàm cập nhật Room
+def Ctrl_update_room(room_id, home_id, Name):
+    try:
+        return Room.Model_update_room(room_id, home_id, Name)
+    except Exception as e:
+        return f'Error: {e}'   
 
+
+
+# ______________________________________________[ DEVICE ] 
+# Hàm tạo device
+def Ctrl_set_device(device_id, room_id, type):
+    try:
+        return Device.Model_set_device(device_id, room_id, type)
+    except Exception as e:
+        return f'Error: {e}' 
+
+# Hàm lấy danh sách các Device 
+def Ctrl_get_devices():
+    return Device.Model_get_devices()
+
+# Hàm cập nhật Device
+def Ctrl_update_device(Db_device_id, room_id, type):
+    try:
+        return Device.Model_update_device(Db_device_id, room_id, type)
+    except Exception as e:
+        return f'Error: {e}' 
+
+
+
+# ______________________________________________[ PASSWORD ] 
+# Hàm đặt mật khẩu cho khóa cửa    
+def Ctrl_set_device_password(device_id, Name, password, effective_time, invalid_time):
+    try:
+        return DevicePassword.Model_set_device_password(device_id, Name, password, effective_time, invalid_time)
+    except Exception as e:
+        return f'Error: {e}'
 
 # Hàm tạo mật khẩu OTP cho khóa cửa
-def Ctrl_set_lock_OTP(device_id):
-    # Gọi API của tuya
-    response = tuya_set_lock_OTP(device_id)
-    if response['success']:
-        # Trả về mật khẩu OTP
-        # return response['password']
-        return f'{response["result"]}, {response["password"]}'
-    else:
-        return f'Lấy OTP không thành công cho khóa {device_id} : {response["msg"]}'
+def Ctrl_set_device_password_OTP(device_id):
+    try:
+        return DevicePassword.Model_set_device_password_OTP(device_id)
+    except Exception as e:
+        return f'Error: {e}'          
+
+# Hàm lấy danh sách Passwords
+def Ctrl_get_device_passwords():
+        return DevicePassword.Model_get_device_passwords()
+
+# Hàm thay đổi mật khẩu cho một khóa cửa
+def Ctrl_update_device_password(device_id, password_id, password, effective_time, invalid_time):  
+    try:
+        return DevicePassword.Model_update_device_password(device_id, password_id, password, effective_time, invalid_time)
+    except Exception as e:
+        return f'Error: {e}' 
+
+# Hàm xóa mật khẩu tạm thời cho khóa cửa
+def Ctrl_delete_device_password(device_id, password_id):
+    try:
+        return DevicePassword.Model_delete_device_password(device_id, password_id)
+    except Exception as e:
+        return f'Error: {e}' 
+        
+
+
+# ______________________________________________[ LOG ]
+# Hàm lấy log
+def Ctrl_get_device_logs(devId):
+    try:
+        return DeviceLog.Model_get_device_logs(devId)
+    except Exception as e:
+        return f'Error: {e}'
+
+
+
+# ______________________________________________[ API TUYA ]
+# Hàm lấy trạng thái pin 
+def Ctrl_get_device_status_pin(devId):
+    try:
+        return Model_get_device_status_pin(devId)
+    except Exception as e:
+        return f'Error: {e}'
+    
+# Hàm chụp ảnh
+def Ctrl_capture_an_image(device_id):
+    try:
+        return Model_capture_an_image(device_id)
+    except Exception as e:
+        return f'Error: {e}'
+    
+# Hàm lấy logs device của Tuya
+def Ctrl_get_device_logs_Tuya(device_id):
+    try:
+        return Model_get_device_logs_Tuya(device_id)
+    except Exception as e:
+        return f'Error: {e}'
+    
+# Hàm lấy logs device cảu Tuya 2
+def Ctrl_get_device_logs_Tuya_2(devId, start_time, end_time):
+    try:
+        return Model_get_device_logs_Tuya_2(devId, start_time, end_time)
+    except Exception as e:
+        return f'Error: {e}'
+    
+# Hàm xử lý lấy list device có trong Cloud Tuya
+def Ctrl_get_list_device_inCloud():
+    return Model_get_list_device_inCloud()
+
+
+
     
 
-# Hàm lấy trạng thái password tạm thời
-def Ctrl_get_password_status(device_id, password_id):
-    # Gọi API của tuya để lấy trạng thái  
-    response = tuya_get_password_status(device_id, password_id)
-    if response['success']:
-        # Trả về tarng5 thái mật khẩu
-        return f'{response["result"]["phase"]}'
-    else:
-        return f'Lấy trạng thái mật khẩu không thành công: {response["msg"]}' 
+
 
     
 

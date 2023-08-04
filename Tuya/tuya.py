@@ -1,15 +1,12 @@
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
-from base64 import b64decode
 import random
 from datetime import datetime, timedelta
 from tuya_connector import (
-    TuyaOpenAPI,
-    TuyaOpenPulsar,
-    TuyaCloudPulsarTopic,
+    TuyaOpenAPI
 )
-import json
-from Database.db import Db_set_lock_password, Db_update_lock_password, Db_delete_lock_password
+import time as time_module
+
 
 # Khởi tạo kết nối với API của Tuya
 ACCESS_ID = "jgxfarjqssw7pwfmjqrm"
@@ -86,26 +83,6 @@ def tuya_delete_lock_password(device_id, password_id):
     return response
 
 
-# Hàm gọi API của Tuya để lấy nhật ký hoạt động của khóa cửa
-def tuya_get_lock_history(device_id, page_no, page_size, start_time, end_time):
-    response = openapi.get(f'/v1.0/devices/{device_id}/door-lock/open-logs', {
-        'device_id': device_id,
-        'page_no': page_no,
-        'page_size': page_size,
-        'start_time': start_time,
-        'end_time': end_time
-    })
-    return response
-
-
-# Hàm gọi API của Tuya để lấy trạng thái pin của khóa cửa
-def tuya_get_lock_status(device_id):
-    response = openapi.get(f'/v1.0/devices/{device_id}', {
-        'device_id': device_id
-    })
-    return response
-
-
 # Hàm gọi API của Tuya để lấy OTP
 def tuya_set_lock_OTP(device_id):
     access_secret = ACCESS_KEY
@@ -144,6 +121,49 @@ def tuya_get_password_status(device_id, password_id):
     return response
 
 
+# Hàm gọi API của Tuya để lấy trạng thái pin của khóa cửa
+def tuya_get_lock_status(device_id):
+    response = openapi.get(f'/v1.0/devices/{device_id}', {
+        'device_id': device_id
+    })
+    return response
+
+
+# Hàm gọi API để chụp ảnh
+def tuya_capture_an_image(device_id):
+    response = openapi.post(f'/v1.0/cameras/{device_id}/actions/capture', {
+        'device_id': device_id
+    })
+    return response
+
+
+# Hàm gọi API của Tuya để lấy nhật ký thiết bị
+def tuya_get_device_logs_Tuya(devId):
+    end_time = int(time_module.time() * 1000)
+    start_time = int((datetime.now() - timedelta(days=1)).timestamp() * 1000)
+    response = openapi.get(f'/v1.0/devices/{devId}/logs', {
+        'device_id': devId,
+        'type': '7',
+        'start_time': start_time,
+        'end_time': end_time
+    })
+    return response
+
+# Hàm gọi API của Tuya để lấy nhật ký thiết bị 2
+def tuya_get_device_logs_Tuya_2(devId, start_time, end_time):
+    response = openapi.get(f'/v1.0/devices/{devId}/door-lock/open-logs', {
+        'device_id': devId,
+        'type': '7',
+        'start_time': start_time,
+        'end_time': end_time
+    })
+    return response
+
+
+# Hàm gọi API của Tuya để lấy list device có trong Cloud
+def tuya_get_list_device_inCloud():
+    response = openapi.get(f'/v1.3/iot-03/devices')
+    return response
 
 
 
