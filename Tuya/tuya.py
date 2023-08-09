@@ -38,6 +38,8 @@ def encode(device_id, password, access_secret):
     return encrypted_password, ticket_id
 
 
+
+
 # Hàm gọi API của Tuya để đặt mật khẩu cho thiết bị khóa cửa
 def tuya_set_lock_password(device_id, Name, password, effective_time, invalid_time):
     access_secret = ACCESS_KEY
@@ -129,41 +131,37 @@ def tuya_get_lock_status(device_id):
     return response
 
 
-# Hàm gọi API để chụp ảnh
-def tuya_capture_an_image(device_id):
-    response = openapi.post(f'/v1.0/cameras/{device_id}/actions/capture', {
-        'device_id': device_id
-    })
-    return response
-
-
 # Hàm gọi API của Tuya để lấy nhật ký thiết bị
 def tuya_get_device_logs_Tuya(devId):
     end_time = int(time_module.time() * 1000)
-    start_time = int((datetime.now() - timedelta(days=1)).timestamp() * 1000)
+    start_time = int((datetime.now() - timedelta(days=7)).timestamp() * 1000)
     response = openapi.get(f'/v1.0/devices/{devId}/logs', {
         'device_id': devId,
         'type': '7',
         'start_time': start_time,
-        'end_time': end_time
-    })
-    return response
-
-# Hàm gọi API của Tuya để lấy nhật ký thiết bị 2
-def tuya_get_device_logs_Tuya_2(devId, start_time, end_time):
-    response = openapi.get(f'/v1.0/devices/{devId}/door-lock/open-logs', {
-        'device_id': devId,
-        'type': '7',
-        'start_time': start_time,
-        'end_time': end_time
+        'end_time': end_time,
+        'size': max
     })
     return response
 
 
 # Hàm gọi API của Tuya để lấy list device có trong Cloud
 def tuya_get_list_device_inCloud():
-    response = openapi.get(f'/v1.3/iot-03/devices')
+    response = openapi.get(f'/v1.3/iot-03/devices', {
+        'source_type': 'tuyaUser',
+        'source_id': 'az16893107760720xATG',
+    })
     return response
+
+
+# Hàm gọi API của Tuya để cập nhật thông tin device
+def tuya_update_device(device_id, name):
+    openapi.put(f'/v1.0/iot-03/devices/{device_id}', {
+        'device_id': device_id,
+        'name': name
+    })
+    
+
 
 
 

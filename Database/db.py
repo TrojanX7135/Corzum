@@ -38,16 +38,18 @@ def Db_get_homes():
     return result
 
 # Hàm update Home
-def Db_update_home(home_id, Name, Address):
+def Db_update_home(home_id, Name, address):
     home.update_one({'_id': ObjectId(home_id)}, {'$set': {
         'Name': Name,
-        'address': Address,
+        'address': address,
     }})
     
 # Hàm xóa Home
 def Db_delete_home(home_id):
     home.delete_one({'_id': ObjectId(home_id)})
-    room.delete_many({'home_id': home_id})   
+    room.update_many({'home_id': home_id}, {'$set': {
+        'home_id': '...'
+    }})
 
 
 
@@ -63,17 +65,31 @@ def Db_set_room(home_id, Name):
     }
     room.insert_one(room_data)
 
-# Hàm lấy thông tin Room
+# Hàm lấy danh sách Room
 def Db_get_rooms():
     rooms = room.find()
     result = []
     for room_data in rooms:
         result.append({
+            'room_id': str(room_data['_id']),
             'home_id': room_data['home_id'],
             'Name': room_data['Name'],
             'createAt': room_data['createAt']
         })
     return result
+
+# Hàm lấy danh sách Room dựa theo home
+def Db_get_rooms_withHome(home_id):
+    rooms = room.find({'home_id': home_id})
+    result = []
+    for room_data in rooms:
+        result.append({
+            'room_id': str(room_data['_id']),
+            'home_id': room_data['home_id'],
+            'Name': room_data['Name'],
+            'createAt': room_data['createAt']
+        })
+    return result    
 
 # Hàm update Room
 def Db_update_room(room_id, home_id, Name):
@@ -84,25 +100,29 @@ def Db_update_room(room_id, home_id, Name):
     
 # Hàm xóa Room    
 def Db_delete_room(room_id):
-    room.delete_one({'_id': room_id})
-    device.delete_many({'room_id': room_id,})
+    room.delete_one({'_id': ObjectId(room_id)})
+    device.update_many({'room_id': room_id}, {'$set': {
+        'room_id': '...'
+    }})
 
 
 
 # ______________________________________________[ DEVICE ]
 # Hàm thêm một Device
-def Db_set_device(device_id, room_id, type):
+def Db_set_device(device_id, room_id, type, name):
     time = datetime.now()
     createAt = time.strftime('%Y-%m-%d %H:%M:%S')
     device_data = {
         'device_id': device_id,
         'room_id': room_id,
         'type': type,
-        'createAt': createAt
+        'name': name,
+        'createAt': createAt,
+        'battery_sate': '...'
     }
     device.insert_one(device_data)
 
-# Hàm lấy thông tin Device
+# Hàm lấy danh sách Device
 def Db_get_devices():
     devices = device.find()
     result = []
@@ -111,15 +131,32 @@ def Db_get_devices():
             'device_id': device_data['device_id'],
             'room_id': device_data['room_id'],
             'type': device_data['type'],
-            'createAt': device_data['createAt']
+            'name': device_data['name'],
+            'createAt': device_data['createAt'],
+            'battery_state': device_data['battery_state']
         })
     return result
 
+# Hàm lấy danh sách Device dựa theo Room
+def Db_get_devices_withRoom(room_id):
+    devices = device.find({'room_id': room_id})
+    result = []
+    for device_data in devices:
+        result.append({
+            'device_id': device_data['device_id'],
+            'room_id': device_data['room_id'],
+            'type': device_data['type'],
+            'name': device_data['name'],
+            'createAt': device_data['createAt'],
+            'battery_state': device_data['battery_state']
+        })
+    return result 
+
 # Hàm update Device
-def Db_update_device(Db_device_id, room_id, type):
-    device.update_one({'_id': Db_device_id}, {'$set': {
+def Db_update_device(device_id, room_id, name):
+    device.update_one({'device_id': device_id}, {'$set': {
         'room_id': room_id,
-        'type': type,
+        'name': name
     }})
 
 # Hàm cập nhật pin cho Device
@@ -127,12 +164,25 @@ def Db_update_device_pin(devId, battery_state):
     device.update_one({'device_id': devId}, {'$set': {
         'battery_state': battery_state
     }})
+       
+# Hàm cập nhật thêm device từ Cloud
+def Db_add_device_fromCloud(device_id, type, name, createAt):
+    find = device.find_one({'device_id': device_id})
+    if not find:
+        device.insert_one({
+            'device_id': device_id,
+            'room_id': '...',
+            'type': type,
+            'name': name,
+            'createAt': createAt,
+            'battery_state': '...'
+        })
 
 # Hàm xóa Device   
-def Db_delete_device(room_id):
-    room.delete_one({'_id': room_id})
-    device.delete_many({'room_id': room_id,})      
-
+def Db_delete_device(device_id):
+    device.delete_one({'device_id': device_id})
+    device_passwords.delete_many({'device_id': device_id})      
+    
 
 
 # ______________________________________________[ PASSWORD ]
@@ -168,6 +218,23 @@ def Db_get_device_passwords():
         })
     return result
 
+# Hàm lấy danh sách Password dựa theo Device
+def Db_get_device_passwords_withDevice(device_id):
+    passwords = device_passwords.find({'device_id': device_id})
+    result = []
+    for device_password in passwords:
+        result.append({
+            'device_id': device_password['device_id'],
+            'Name': device_password['Name'],
+            'password': device_password['password'],
+            'effective_time': device_password['effective_time'],
+            'invalid_time': device_password['invalid_time'],
+            'password_type': device_password['password_type'],
+            'password_id': device_password['password_id']['id'],
+            'status': device_password['status']
+        })
+    return result 
+
 # Hàm update trạng thái Password
 def Db_update_device_password_status(device_id, password_id, status):
     device_passwords.update_one(
@@ -187,8 +254,8 @@ def Db_update_device_password(device_id, password_id, password, effective_time, 
     }})
 
 # Hàm xóa Passord Db
-def Db_delete_device_password(device_id, password_id):
-    device_passwords.delete_one({'device_id': device_id, 'password_id.id': password_id})
+def Db_delete_device_password(password_id):
+    device_passwords.delete_one({'password_id.id': password_id})
 
 
 

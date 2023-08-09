@@ -1,13 +1,12 @@
 from fastapi import FastAPI, Form
-from Controller.controller import Ctrl_set_home, Ctrl_get_homes, Ctrl_update_home
-from Controller.controller import Ctrl_set_room, Ctrl_get_rooms, Ctrl_update_room
-from Controller.controller import Ctrl_set_device, Ctrl_get_devices, Ctrl_update_device
-from Controller.controller import Ctrl_set_device_password, Ctrl_set_device_password_OTP, Ctrl_get_device_passwords, Ctrl_update_device_password, Ctrl_delete_device_password 
-from Controller.controller import Ctrl_get_device_logs
+from Controller.controller import Ctrl_set_home, Ctrl_get_homes, Ctrl_update_home, Ctrl_delete_home
+from Controller.controller import Ctrl_set_room, Ctrl_get_rooms, Ctrl_get_rooms_withHome, Ctrl_update_room, Ctrl_delete_room
+from Controller.controller import Ctrl_set_device, Ctrl_get_devices, Ctrl_get_devices_withRoom, Ctrl_update_device, Ctrl_delete_device
+from Controller.controller import Ctrl_set_device_password, Ctrl_set_device_password_OTP, Ctrl_get_device_passwords, Ctrl_get_device_passwods_withDevice, Ctrl_update_device_password, Ctrl_delete_device_password, Ctrl_delete_password_inDatabase 
+from Controller.controller import Ctrl_get_device_logs, Ctrl_update_device_logs
 
 from Controller.controller import Ctrl_get_device_status_pin
-from Controller.controller import Ctrl_capture_an_image
-from Controller.controller import Ctrl_get_device_logs_Tuya, Ctrl_get_device_logs_Tuya_2
+from Controller.controller import Ctrl_get_device_logs_Tuya
 from Controller.controller import Ctrl_get_list_device_inCloud
 
 app = FastAPI()
@@ -34,9 +33,17 @@ async def View_get_homes():
 async def View_update_home(
         home_id: str = Form(...),
         Name: str = Form(...),
-        Address: str = Form(...)
+        address: str = Form(...)
     ):
-    result = Ctrl_update_home(home_id, Name, Address)
+    result = Ctrl_update_home(home_id, Name, address)
+    return {'result': result}
+
+# Route DELETE để xóa home
+@app.delete('/delete_home')
+async def View_delete_home(
+        home_id: str = Form(...)
+    ):
+    result = Ctrl_delete_home(home_id)
     return {'result': result}
 
 
@@ -57,6 +64,14 @@ async def View_get_rooms():
     result = Ctrl_get_rooms()
     return {'result': result}
 
+# Route POST để lấy danh sách các Room theo Home
+@app.post('/get_rooms_withHome')
+async def View_get_rooms_withHome(
+       home_id: str = Form(...) 
+    ):
+    result = Ctrl_get_rooms_withHome(home_id)
+    return {'result': result}
+
 # Route PUT để cập nhật Room
 @app.put('/update_room')
 async def View_update_room(
@@ -67,17 +82,18 @@ async def View_update_room(
     result = Ctrl_update_room(room_id, home_id, Name)
     return {'result': result}
 
+# Route DELETE để xóa Room
+@app.delete('/delete_room')
+async def View_delete_room(
+        room_id: str = Form(...)
+    ):
+    result = Ctrl_delete_room(room_id)
+    return {'result': result}
+
 
 # ______________________________________________[ DEVICE ]
 # Route POST để tạo Device
-@app.post('/set_device')
-async def View_set_devce(
-        id: str = Form(...),
-        room_id: str = Form(...),
-        type: str = Form(...),
-    ):
-    result = Ctrl_set_device(id, room_id ,type)
-    return {'result': result}
+# Không cần tạo device vì khi GET device device sẽ được tự động thêm
 
 # Route GET để lấy danh sách các Device
 @app.get('/get_devices')
@@ -85,14 +101,30 @@ async def View_get_devices():
     result = Ctrl_get_devices()
     return {'result': result}
 
+# Route POST để lấy danh sách các Devices theo Room
+@app.post('/get_devices_withRoom')
+async def View_get_devices_withRoom(
+       room_id: str = Form(...) 
+    ):
+    result = Ctrl_get_devices_withRoom(room_id)
+    return {'result': result}
+
 # Route PUT để cập nhật Device
 @app.put('/update_device')
 async def View_update_device(
-        Db_device_id: str = Form(...), 
+        device_id: str = Form(...), 
         room_id: str = Form(...), 
-        type: str = Form(...)
+        name: str = Form(...)
     ):
-    result = Ctrl_update_device(Db_device_id, room_id, type)
+    result = Ctrl_update_device(device_id, room_id, name)
+    return {'result': result}
+
+# Route DELETE để xóa Device
+@app.delete('/delete_device')
+async def View_delete_device(
+        device_id: str = Form(...)
+    ):
+    result = Ctrl_delete_device(device_id)
     return {'result': result}
 
 
@@ -119,10 +151,18 @@ async def View_set_device_password_OTP(
     result = Ctrl_set_device_password_OTP(device_id)
     return {'result':result}
 
-# Route GET để lấy danh sách các khóa cửa từ cơ sở dữ liệu
+# Route GET để lấy danh sách password
 @app.get('/get_device_passwords')
 async def View_get_device_passwords():
     result = Ctrl_get_device_passwords()
+    return {'result': result}
+
+# Route POST để lấy danh sách Password theo Device
+@app.post('/get_device_passwods_withDevice')
+async def View_get_device_passwods_withDevice(
+       device_id: str = Form(...) 
+    ):
+    result = Ctrl_get_device_passwods_withDevice(device_id)
     return {'result': result}
 
 # Route PUT để thay đổi mật khẩu cho một khóa cửa
@@ -137,13 +177,21 @@ async def View_update_device_password(
     result = Ctrl_update_device_password(device_id, password_id, password, effective_time, invalid_time)
     return {'result': result}
 
-# Route DELETE để xóa mật khẩu tạm thời cho khóa cửa
-@app.delete('/delete_device_password')
+# Route DELETE để xóa mật khẩu tạm thời cho khóa cửa trong Cloud Tuya
+@app.delete('/delete_device_password_inCloudTuya')
 async def View_delete_device_password(
         device_id: str = Form(...),
         password_id: int = Form(...),
     ):
     result = Ctrl_delete_device_password(device_id, password_id)
+    return {'result': result}
+
+# Route DELETE để xóa Password trong Database
+@app.delete('/delete_device_password_inDatabase')
+async def View_delete_password_inDatabase(
+        password_id: int = Form(...)
+    ):
+    result = Ctrl_delete_password_inDatabase(password_id)
     return {'result': result}
 
 
@@ -152,10 +200,17 @@ async def View_delete_device_password(
 # Route POST để lấy log theo device
 @app.post('/get_device_logs')
 async def View_get_device_logs(
-        devId: str = Form(...)
+        device_id: str = Form(...)
     ):
-    result = Ctrl_get_device_logs(devId)
+    result = Ctrl_get_device_logs(device_id)
     return {'result':result}
+
+# Route PUT để cập nhật logs
+@app.put('/update_device_logs')
+async def View_update_device_logs():
+    result = Ctrl_update_device_logs()
+    return {'result':result}
+
 
 
 
@@ -169,37 +224,20 @@ async def View_get_device_status_pin(
     return {'result':result}
 
 
-# Route POST để chụp ảnh
-@app.post('/capture_an_image')
-async def View_capture_an_image(
-        device_id: str = Form(...)
-    ):
-    result = Ctrl_capture_an_image(device_id)
-    return {'result': result}
+# # Route POST để lấy device logs từ Tuya
+# @app.post('/get_device_logs_Tuya')
+# async def View_get_device_logs_Tuya(
+#         device_id: str = Form(...), 
+#     ):
+#     result = Ctrl_get_device_logs_Tuya(device_id)
+#     return {'result': result}
 
-# Route POST để lấy device logs từ Tuya
-@app.post('/get_device_logs_Tuya')
-async def View_get_device_logs_Tuya(
-        device_id: str = Form(...), 
-    ):
-    result = Ctrl_get_device_logs_Tuya(device_id)
-    return {'result': result}
 
-# Route POST để lấy device logs từ Tuya 2
-@app.post('/get_device_logs_Tuya_2')
-async def View_get_device_logs_Tuya_2(
-        devId: str = Form(...),
-        start_time: int = Form(...),
-        end_time: int = Form(...) 
-    ):
-    result = Ctrl_get_device_logs_Tuya_2(devId, start_time, end_time)
-    return {'result': result}
-
-# Route GET để lấy list device có trong Cloud Tuya
-@app.get('/get_list_device_inCloud')
-async def View_get_list_device_inCloud():
-    result = Ctrl_get_list_device_inCloud
-    return {'result': result} 
+# # Route GET để lấy list device có trong Cloud Tuya
+# @app.post('/get_list_device_inCloud')
+# async def View_get_list_device_inCloud():
+#     result = Ctrl_get_list_device_inCloud()
+#     return {'result': result} 
 
 
 # Route POST để lấy trạng thái mật khẩu
